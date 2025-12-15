@@ -10,17 +10,23 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.http.Method;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author zhenggang
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnBean(io.minio.MinioClient.class)
 public class MinioGateway {
 
     private final MinioClient minioClient;
@@ -42,8 +48,8 @@ public class MinioGateway {
         }
     }
 
-    public String putObject(String bucket, String objectKey, MultipartFile file) throws Exception {
-        log.info("Start MinIO putObject operation, bucket: {}, objectKey: {}", bucket, objectKey);
+    public String putObject(String bucket, String objectKey, MultipartFile file, Map<String, String> tags) throws Exception {
+        log.info("Start MinIO putObject operation, bucket: {}, objectKey: {}, tags: {}", bucket, objectKey, tags);
         ensureBucket(bucket);
         try (InputStream in = file.getInputStream()) {
             minioClient.putObject(
@@ -52,6 +58,7 @@ public class MinioGateway {
                             .object(objectKey)
                             .stream(in, file.getSize(), -1)
                             .contentType(file.getContentType())
+                            .tags(tags)
                             .build());
             log.info("MinIO putObject operation success, bucket: {}, objectKey: {}", bucket, objectKey);
         } catch (Exception e) {
@@ -59,6 +66,10 @@ public class MinioGateway {
             throw e;
         }
         return objectKey;
+    }
+
+    public String putObject(String bucket, String objectKey, MultipartFile file) throws Exception {
+        return putObject(bucket, objectKey, file, null);
     }
 
     public String putObject(String bucket, String objectKey, byte[] data, String contentType) throws Exception {

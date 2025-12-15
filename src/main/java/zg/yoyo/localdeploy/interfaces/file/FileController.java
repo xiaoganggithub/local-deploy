@@ -27,9 +27,10 @@ public class FileController {
 
     private final FileAppService appService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ApiResponse<String> upload(@RequestPart("file") MultipartFile file) throws Exception {
-        String bizId = appService.upload(file);
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, "multipart/mixed"})
+    public ApiResponse<String> upload(@RequestPart("file") MultipartFile file,
+                                      @RequestParam("ttl") String ttl) throws Exception {
+        String bizId = appService.upload(file, ttl);
         return ApiResponse.success(bizId);
     }
 

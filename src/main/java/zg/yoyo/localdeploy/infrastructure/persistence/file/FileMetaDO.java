@@ -23,6 +23,8 @@ public class FileMetaDO {
     private Long sizeBytes;
     private String bucket;
     private String objectKey;
+    private OffsetDateTime expireAt;
+    private Boolean deleted;
     @TableField(fill = FieldFill.INSERT)
     private OffsetDateTime createdAt;
     @TableField(fill = FieldFill.INSERT_UPDATE)

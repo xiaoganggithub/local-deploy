@@ -1,65 +1,56 @@
 package zg.yoyo.localdeploy.infrastructure.config;
 
-import org.eclipse.paho.client.mqttv3.MqttClient;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import lombok.extern.slf4j.Slf4j;
+import zg.yoyo.localdeploy.infrastructure.emqx.config.EmqxProperties;
+import zg.yoyo.localdeploy.infrastructure.emqx.config.EmqxConfiguredCondition;
+import zg.yoyo.localdeploy.infrastructure.emqx.core.EmqxClientFactory;
+import zg.yoyo.localdeploy.infrastructure.emqx.core.EmqxTemplate;
+import zg.yoyo.localdeploy.infrastructure.emqx.core.PahoEmqxClientFactory;
+import zg.yoyo.localdeploy.infrastructure.emqx.health.EmqxHealthIndicator;
 
 @Configuration
+@EnableConfigurationProperties(EmqxProperties.class)
 @Slf4j
+@Conditional(EmqxConfiguredCondition.class)
 public class EmqxConfig {
 
-    @Value("${emqx.broker}")
-    private String broker;
-    
-    @Value("${emqx.client-id}")
-    private String clientId;
-    
-    @Value("${emqx.username}")
-    private String username;
-    
-    @Value("${emqx.password}")
-    private String password;
-    
-    @Value("${emqx.topic}")
-    private String topic;
-    
-    @Value("${emqx.qos}")
-    private int qos;
-
     @Bean
-    public MqttConnectOptions mqttConnectOptions() {
+    public MqttConnectOptions mqttConnectOptions(EmqxProperties props) {
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setUserName(username);
-        options.setPassword(password.toCharArray());
+        options.setUserName(props.getUsername());
+        options.setPassword(props.getPassword().toCharArray());
         options.setCleanSession(true);
         options.setConnectionTimeout(10);
         options.setKeepAliveInterval(20);
         options.setAutomaticReconnect(true);
+        if (props.isSsl() || props.getBrokerUrl().startsWith("ssl")) {
+            options.setSocketFactory(javax.net.ssl.SSLSocketFactory.getDefault());
+        }
+        log.info("EMQX MqttConnectOptions initialized for broker {}", props.getBrokerUrl());
         return options;
     }
-    
+
     @Bean
-    public String broker() {
-        return broker;
+    public EmqxClientFactory emqxClientFactory(EmqxProperties props, MqttConnectOptions options) {
+        log.info("EMQX client factory initialized");
+        return new PahoEmqxClientFactory(props, options);
     }
-    
+
     @Bean
-    public String clientId() {
-        return clientId;
+    public EmqxTemplate emqxTemplate(EmqxClientFactory factory, EmqxProperties props, MeterRegistry meterRegistry) {
+        log.info("EMQX template initialized");
+        return new EmqxTemplate(factory, props, meterRegistry);
     }
-    
+
     @Bean
-    public String emqxTopic() {
-        return topic;
-    }
-    
-    @Bean
-    public int emqxQos() {
-        return qos;
+    public EmqxHealthIndicator emqxHealthIndicator(EmqxTemplate template) {
+        return new EmqxHealthIndicator(template);
     }
 }

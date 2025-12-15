@@ -1,5 +1,6 @@
 package zg.yoyo.localdeploy.domain.file;
 
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -15,14 +16,18 @@ public class FileMeta {
     private final long sizeBytes;
     private final String bucket;
     private final String objectKey;
+    private final OffsetDateTime expireAt;
+    private final boolean deleted;
 
     public FileMeta(String bizId, String filename, String contentType, long sizeBytes,
-                    String bucket, String objectKey) {
+                    String bucket, String objectKey, OffsetDateTime expireAt, boolean deleted) {
         this.bizId = bizId;
         this.filename = filename;
         this.contentType = contentType;
         this.sizeBytes = sizeBytes;
         this.bucket = bucket;
         this.objectKey = objectKey;
+        this.expireAt = expireAt;
+        this.deleted = deleted;
     }
 }

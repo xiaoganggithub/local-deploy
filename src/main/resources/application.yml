@@ -24,6 +24,12 @@ spring:
     init:
       mode: always
       schema-locations: classpath:db/schema.sql
+  emqx:
+    broker-url: tcp://127.0.0.1:1883
+    client-id: emqx-demo-client
+    username: admin
+    password: public
+    qos: 1
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -36,6 +42,9 @@ minio:
   access-key: myadmin
   secret-key: myadmin123
   bucket: poc-bucket
+  lifecycle:
+    default-days: 7
+    enabled: true
 
 logging:
   level:
@@ -45,13 +54,4 @@ logging:
     org.eclipse.paho.client.mqttv3: debug
 
 server:
-  port: 8083
-
-# EMQX Configuration
-emqx:
-  broker: tcp://127.0.0.1:1883
-  client-id: emqx-demo-client
-  username: admin
-  password: public
-  topic: emqx/demo
-  qos: 1
+  port: 9099

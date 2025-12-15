@@ -31,7 +31,7 @@
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
         <druid.version>1.2.22</druid.version>
         <hutool.version>5.8.26</hutool.version>
-        <minio.version>8.5.8</minio.version>
+        <minio.version>8.5.9</minio.version>
     </properties>
     <dependencies>
         <dependency>
@@ -84,6 +84,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
     </dependencies>
 
